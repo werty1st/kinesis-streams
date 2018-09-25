@@ -18,7 +18,7 @@ const { Readable } = require('stream')
 
 const AWS = require('aws-sdk')
 const bunyan = require('bunyan')
-const { KinesisWritable } = require('kinesis-streams')
+const { KinesisWritable } = require('./lib/index')
 
 const WAIT = 500
 
