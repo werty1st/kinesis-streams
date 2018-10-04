@@ -7,6 +7,8 @@
     "node": ">6.0"
   },
   "scripts": {
+    "demo": "node demo_write.js test-stream",
+    "demo-read": "DEBUG=OFFkinesis-streams:readable:reshard STREAM=test-stream node demo_read.js",
     "start": "node lib/index.js",
     "lint": "eslint lib test",
     "pretest": "eslint lib test",
@@ -29,7 +31,6 @@
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
   "license": "Apache-2.0",
   "dependencies": {
-    "bunyan": "^1.8.12",
     "debug": "^3.1.0",
     "flushwritable": "^1.0.0"
   },
@@ -43,7 +44,6 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
     "flow-bin": "^0.63.0",
-    "husky": "^0.14.3",
     "istanbul": "^0.4.5",
     "mocha": "^4.1.0",
     "sinon": "^4.1.3",

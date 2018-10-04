@@ -1,61 +1,38 @@
 // Usage: node demo.js [streamName]
-//
-// Sends a trickle of data into a Kinesis stream using KinesisWritable.
-// Designed with some jitter so sometimes you'll hit the highWaterMark and
-// sometimes you'll hit the timeout.
-//
-// If you want prettier logging:
-//
-//     node demo.js hello-world | bunyan --output short
-//
-// And to verify the stream output:
-//
-// kinesis-console-consumer hello-world
-//
-// In local dev, if you get "Cannot find module 'kinesis-streams'", run `npm link`
-//
-const { Readable } = require('stream')
 
 const AWS = require('aws-sdk')
-const bunyan = require('bunyan')
-const { KinesisWritable } = require('./lib/index')
+AWS.config.update({region: "eu-west-1"});
+const { KinesisReadable } = require('./lib/index')
 
-const WAIT = 500
+const KINSTREAM = process.env.STREAM;
 
-const logger = bunyan.createLogger({name: 'demo', level: 'debug'})
-
-class NoiseReadable extends Readable {
-  constructor (options = {}) {
-    options.objectMode = true
-    super(options)
-    this._alphabet = '0123456789ABCDEF'.split('')
-  }
-
-  _read (size) {
-    const throbber = this._alphabet.shift()
-    const data = throbber
-    // const data = {foo: throbber}
-    this._alphabet.push(throbber)
-
-    setTimeout(() => this.push(data), WAIT * 1.1 * Math.random())
-  }
-}
+// setTimeout(() => this.push(data), WAIT * 1.1 * Math.random())
 
 const client = new AWS.Kinesis()
-const stream = new KinesisWritable(client, process.argv[2] || 'demo', {logger, wait: WAIT})
+const stream = new KinesisReadable(client, KINSTREAM || 'demo', { /*parser: JSON.parse,*/ limit: 500})
 
-stream.on('kinesis.putRecords', (response) => {
+stream.on('data', (response) => {
   /* eslint-disable no-unused-vars */
-  const failedCount = response.FailedRecordCount
-  const successCount = response.Records.length - response.FailedRecordCount
-  const queueDepth = stream.queue.length
-  /* eslint-enable */
-})
-stream.on('error', () => {
-  /* eslint-disable no-unused-vars */
-  const errorCount = 1
-  const queueDepth = stream.queue.length
+  //console.log("Kinesis stream data:",response);
   /* eslint-enable */
 })
 
-new NoiseReadable().pipe(stream)
+//SequenceNumber <=> checkpoint
+
+stream.on('checkpoint', (response) => {
+  /* eslint-disable no-unused-vars */
+  console.log("Kinesis checkpoint:",response);
+  /* eslint-enable */
+})
+
+stream.on('resharding', () => {
+    /* eslint-disable no-unused-vars */
+    console.log("Kinesis reshard:");
+    /* eslint-enable */
+  })
+
+stream.on('error', (e) => {
+  /* eslint-disable no-unused-vars */
+  console.error("Kinesis error.",e);
+  /* eslint-enable */
+})

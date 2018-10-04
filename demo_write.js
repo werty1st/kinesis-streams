@@ -20,9 +20,12 @@ const AWS = require('aws-sdk')
 const bunyan = require('bunyan')
 const { KinesisWritable } = require('./lib/index')
 
-const WAIT = 500
+const WAIT = 1500
 
 const logger = bunyan.createLogger({name: 'demo', level: 'debug'})
+
+AWS.config.update({region: "eu-west-1"});
+
 
 class NoiseReadable extends Readable {
   constructor (options = {}) {
@@ -36,7 +39,7 @@ class NoiseReadable extends Readable {
     const data = throbber
     // const data = {foo: throbber}
     this._alphabet.push(throbber)
-
+    //console.log("put data:",data)
     setTimeout(() => this.push(data), WAIT * 1.1 * Math.random())
   }
 }
